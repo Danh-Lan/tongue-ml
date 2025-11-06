@@ -3,7 +3,7 @@ from torch import nn, optim
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from unet import MiniUNet, UNet
+from unet import UNet
 from data_loader import Dataset
 
 if __name__ == "__main__":
@@ -23,7 +23,7 @@ if __name__ == "__main__":
 	train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
 	valid_loader = DataLoader(valid_dataset, batch_size=BATCH_SIZE, shuffle=True)
 
-	model = MiniUNet(in_channels=1, num_classes=2).to(device)
+	model = UNet(in_channels=1, num_classes=2).to(device)
 	criterion = nn.CrossEntropyLoss()
 	optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
 

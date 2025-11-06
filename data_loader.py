@@ -26,12 +26,12 @@ class Dataset:
 			print("Warning: Mismatch between the number of images and masks.")
 
 		self.image_transform = transforms.Compose([
-			transforms.Resize((256, 256)),
+			transforms.Resize((512, 512)),
 			transforms.ToTensor(),
 		])
 
 		self.mask_transform = transforms.Compose([
-			transforms.Resize((256, 256), interpolation=Image.NEAREST),
+			transforms.Resize((512, 512), interpolation=Image.NEAREST),
 		])
 
 	def __len__(self):

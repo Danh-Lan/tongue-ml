@@ -11,7 +11,7 @@ def single_image_inference(image_pth, model_pth, output_pth, device):
     model.load_state_dict(torch.load(model_pth, map_location=torch.device(device)))
 
     transform = transforms.Compose([
-        transforms.Resize((256, 256)),
+        transforms.Resize((512, 512)),
         transforms.ToTensor()
     ])
 
