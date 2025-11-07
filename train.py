@@ -27,6 +27,9 @@ if __name__ == "__main__":
 	criterion = nn.CrossEntropyLoss()
 	optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
+	train_losses = []
+	val_losses = []
+
 	for epoch in tqdm(range(NUM_EPOCHS)):
 		model.train()
 		train_running_loss = 0.0
@@ -44,23 +47,37 @@ if __name__ == "__main__":
 			train_running_loss += loss.item()
 
 		train_loss = train_running_loss / (i + 1)
+		train_losses.append(train_loss)
 
 		model.eval()
 		val_running_loss = 0.0
 		with torch.no_grad():
 			for i, (images, masks) in enumerate(valid_loader):
 				images, masks = images.to(device), masks.to(device)
-				
+
 				outputs = model(images)
 				loss = criterion(outputs, masks)
 
 				val_running_loss += loss.item()
 
 		val_loss = val_running_loss / (i + 1)
-		
+		val_losses.append(val_loss)
+
 		print("-"*30)
 		print(f"Train Loss EPOCH {epoch+1}: {train_loss:.4f}")
 		print(f"Valid Loss EPOCH {epoch+1}: {val_loss:.4f}")
 		print("-"*30)
-	
-	torch.save(model.state_dict(), f"{CHECKPOINT_PATH}/unet_epoch_{epoch+1}.pth")
+
+		if val_loss < best_val_loss:
+			print(f"Validation loss decreased ({best_val_loss:.4f} --> {val_loss:.4f}). Saving best model...")
+			torch.save(model.state_dict(), f"{CHECKPOINT_PATH}/unet_best_model.pth")
+			best_val_loss = val_loss
+
+		if (epoch + 1) % 5 == 0:
+			print(f"Saving checkpoint for epoch {epoch+1}...")
+			torch.save(model.state_dict(), f"{CHECKPOINT_PATH}/unet_epoch_{epoch+1}.pth")
+
+	torch.save({'train_losses': train_losses, 'val_losses': val_losses}, f"{CHECKPOINT_PATH}/losses.pth")
+
+	print("Training finished.")
+	print(f"Best validation loss achieved: {best_val_loss:.4f}")
