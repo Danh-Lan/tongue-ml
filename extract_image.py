@@ -16,14 +16,12 @@ def extract_image(image_pth, model_pth, output_pth, device):
     ])
 
     img = Image.open(image_pth).convert("L")
-    original_size = img.size # Store original size
-    input_img = transform(img).float().to(device)
-    input_img = input_img.unsqueeze(0)
+    original_size = img.size
+    input_img = transform(img).float().unsqueeze(0).to(device)
 
     model.eval()
     with torch.no_grad():
         logits = model(input_img)
-
         probabilities = torch.softmax(logits, dim=1)
         pred_mask = torch.argmax(probabilities, dim=1)
 
@@ -31,8 +29,8 @@ def extract_image(image_pth, model_pth, output_pth, device):
 
     # Resize the mask to the original image size
     pred_mask_img = Image.fromarray((pred_mask_np * 255).astype(np.uint8))
-    pred_mask_img = pred_mask_img.resize(original_size, Image.NEAREST)
-    pred_mask_np_orig_size = np.array(pred_mask_img)
+    pred_mask_img = pred_mask_img.resize(original_size, Image.BILINEAR)
+    pred_mask_np_orig_size = np.array(pred_mask_img) // 255.0
 
     # Apply the mask to the original image
     img_np = np.array(img)
@@ -41,22 +39,37 @@ def extract_image(image_pth, model_pth, output_pth, device):
     # Convert the numpy array back to PIL Image
     extracted_img = Image.fromarray(extracted_img_np.astype(np.uint8))
 
-    # Find bounding box of the extracted region to crop tightly
+    # Find bounding box of the extracted region to crop
+    margin = 5
+
     rows = np.any(extracted_img_np, axis=1)
     cols = np.any(extracted_img_np, axis=0)
     if np.any(rows) and np.any(cols):
         ymin, ymax = np.where(rows)[0][[0, -1]]
         xmin, xmax = np.where(cols)[0][[0, -1]]
+
+        xmin = max(0, xmin - margin)
+        ymin = max(0, ymin - margin)
+        xmax = min(original_size[0], xmax + margin)
+        ymax = min(original_size[1], ymax + margin)
+
         extracted_img = extracted_img.crop((xmin, ymin, xmax, ymax))
     else:
-        # If the mask is empty, save an empty image or handle as appropriate
-        extracted_img = Image.new('L', original_size)
-
+        print("No object founded in the image.")
+        extracted_img = img
 
     # Save results
     os.makedirs(output_pth, exist_ok=True)
-    extracted_save_path = os.path.join(output_pth, "extracted_image.png")
+    extracted_save_path = os.path.join(output_pth, "extracted_image.jpg")
 
     extracted_img.save(extracted_save_path)
 
     print(f"Extracted image saved to: {extracted_save_path}")
+
+if __name__ == "__main__":
+    IMAGE_PATH = "./test/tongue2.jpg"
+    MODEL_PATH = "./checkpoints/unet_best_model.pth"
+    OUTPUT_PATH = "./test"
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+
+    extract_image(IMAGE_PATH, MODEL_PATH, OUTPUT_PATH, device)
