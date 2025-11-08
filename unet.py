@@ -4,7 +4,7 @@ import torch.nn as nn
 from unet_parts import DoubleConv, DownSample, UpSample
 
 class UNet(nn.Module):
-	def __init__(self, in_channels=1, num_classes=2):
+	def __init__(self, in_channels=3, num_classes=2):
 		super(UNet, self).__init__()
 
 		self.down1 = DownSample(in_channels, 64)
@@ -39,8 +39,8 @@ class UNet(nn.Module):
 		return out
 
 if __name__ == "__main__":
-	input_image = torch.randn((1, 1, 128, 128)) 
-	model = UNet(in_channels=1, num_classes=2)
+	input_image = torch.randn((1, 3, 128, 128)) 
+	model = UNet(in_channels=3, num_classes=2)
 	output = model(input_image)
 
 	print("Output shape:", output.shape)

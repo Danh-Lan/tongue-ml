@@ -40,10 +40,13 @@ if __name__ == "__main__":
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    model = UNet(in_channels=1, num_classes=2).to(device)
+    model = UNet(in_channels=3, num_classes=NUM_CLASSES).to(device)
     model.load_state_dict(torch.load("./checkpoints/unet_best_model.pth", map_location=device))
 
     iou_per_class = IoU(model, dataset, NUM_CLASSES)
 
     for i, iou in enumerate(iou_per_class):
+        if i == 0:
+            continue  # Skip background class
+        
         print(f"  IoU for class {i}: {iou:.4f}")

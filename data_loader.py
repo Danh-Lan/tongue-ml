@@ -38,7 +38,7 @@ class Dataset:
 		return len(self.images)
 
 	def __getitem__(self, idx):
-		image = Image.open(self.images[idx]).convert("L")
+		image = Image.open(self.images[idx]).convert("RGB")
 		mask = Image.open(self.masks[idx]).convert("L")
 
 		image = self.image_transform(image)
@@ -55,7 +55,7 @@ if __name__ == "__main__":
 	print(f"Total image-mask pairs in {image_dir}: {len(dataset)}")
 
 	image, mask = dataset[0]
-	print("Image Tensor:", image)
-	print("Mask Tensor:", mask)
+	print(f"Image shape: {image.shape}")
+	print(f"Mask shape: {mask.shape}")
 
 	

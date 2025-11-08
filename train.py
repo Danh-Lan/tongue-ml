@@ -23,7 +23,7 @@ if __name__ == "__main__":
 	train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
 	valid_loader = DataLoader(valid_dataset, batch_size=BATCH_SIZE, shuffle=True)
 
-	model = UNet(in_channels=1, num_classes=2).to(device)
+	model = UNet(in_channels=3, num_classes=2).to(device)
 	criterion = nn.CrossEntropyLoss()
 	optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
