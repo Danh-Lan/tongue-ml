@@ -14,11 +14,11 @@ def image_to_tensor(image_path):
     ])
 
     image = Image.open(image_path).convert("RGB")
-    output = transform(image).float()
+    output = transform(image)
     return output
 
 def predict(image_pth, model_pth, output_pth, device):
-    model = UNet(in_channels=3, num_classes=2).to(device)
+    model = UNet(in_channels=3, num_classes=1).to(device)
     model.load_state_dict(torch.load(model_pth, map_location=torch.device(device)))
 
     input_img = image_to_tensor(image_pth).unsqueeze(0).to(device)

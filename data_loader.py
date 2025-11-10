@@ -43,7 +43,7 @@ class Dataset:
 
 		image = self.image_transform(image)
 		mask = self.mask_transform(mask)
-		mask = F.pil_to_tensor(mask).squeeze(0).long()
+		mask = F.pil_to_tensor(mask).float()
 		
 		return image, mask
 
@@ -58,4 +58,4 @@ if __name__ == "__main__":
 	print(f"Image shape: {image.shape}")
 	print(f"Mask shape: {mask.shape}")
 
-	
+	print(mask.min().item(), mask.max().item(), mask.unique())
