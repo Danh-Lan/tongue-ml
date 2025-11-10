@@ -17,19 +17,17 @@ def image_to_tensor(image_path):
     output = transform(image)
     return output
 
-def predict(image_pth, model_pth, output_pth, device):
-    model = UNet(in_channels=3, num_classes=1).to(device)
-    model.load_state_dict(torch.load(model_pth, map_location=torch.device(device)))
-
+def predict(model, image_pth, output_pth, device):
     input_img = image_to_tensor(image_pth).unsqueeze(0).to(device)
 
     model.eval()
     with torch.no_grad():
         logits = model(input_img)
-        probabilities = torch.softmax(logits, dim=1)
-        pred_mask = torch.argmax(probabilities, dim=1)
+        probabilities = torch.sigmoid(logits)
+        # np.savetxt("probabilities.txt", probabilities.squeeze().cpu().numpy())
+        pred_mask = (probabilities > 0.5).float()
 
-    pred_mask_np = pred_mask.squeeze(0).cpu().numpy()
+    pred_mask_np = pred_mask.squeeze().cpu().numpy()
 
     labeled_mask, num_features = label(pred_mask_np)
     if num_features > 0:
@@ -48,10 +46,14 @@ def predict(image_pth, model_pth, output_pth, device):
     print(f"Binary mask saved to: {mask_save_path}")
 
 if __name__ == "__main__":
-    # SINGLE_IMG_PATH = "./test/tongue.jpg"
-    SINGLE_IMG_PATH = "./data/test/-0011_51_-__jpg.rf.60a43eeb0ea548e7f1cd4431a2f5ee71.jpg"
+    IMG_PATH = "./test/tongue2.jpg"
     MODEL_PATH = "./checkpoints/unet_best_model.pth"
     OUTPUT_PATH = "./test"
-
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    predict(SINGLE_IMG_PATH, MODEL_PATH, OUTPUT_PATH, device)
+
+    model = UNet(in_channels=3, num_classes=1).to(device)
+    model.load_state_dict(
+        torch.load(MODEL_PATH, map_location=torch.device(device))['model_state_dict']
+    )
+
+    predict(model, IMG_PATH, OUTPUT_PATH, device)
