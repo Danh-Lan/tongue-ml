@@ -4,3 +4,4 @@ checkpoints/*
 test/*
 old_outputs/*
 outputs/*
+prod/*

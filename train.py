@@ -5,6 +5,7 @@ from tqdm import tqdm
 
 from unet import UNet
 from data_loader import Dataset
+from loss import DiceBCELoss
 
 if __name__ == "__main__":
 	TRAIN_PATH = "./data/train"
@@ -23,10 +24,11 @@ if __name__ == "__main__":
 	train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
 	valid_loader = DataLoader(valid_dataset, batch_size=BATCH_SIZE, shuffle=True)
 
-	model = UNet(in_channels=3, num_classes=2).to(device)
-	criterion = nn.CrossEntropyLoss()
+	model = UNet(in_channels=3, num_classes=1).to(device)
+	criterion = DiceBCELoss()
 	optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
+	best_val_loss = float('inf')
 	train_losses = []
 	val_losses = []
 
@@ -36,6 +38,7 @@ if __name__ == "__main__":
 
 		for i, (images, masks) in enumerate(train_loader):
 			images, masks = images.to(device), masks.to(device)
+			masks.unsqueeze_(1).float()
 
 			optimizer.zero_grad()
 			outputs = model(images)
@@ -54,6 +57,7 @@ if __name__ == "__main__":
 		with torch.no_grad():
 			for i, (images, masks) in enumerate(valid_loader):
 				images, masks = images.to(device), masks.to(device)
+				masks.unsqueeze_(1).float()
 
 				outputs = model(images)
 				loss = criterion(outputs, masks)
