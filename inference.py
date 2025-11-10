@@ -3,6 +3,7 @@ from torchvision import transforms
 from PIL import Image
 import numpy as np
 import os
+from scipy.ndimage import label
 
 from unet import UNet
 
@@ -29,6 +30,13 @@ def predict(image_pth, model_pth, output_pth, device):
         pred_mask = torch.argmax(probabilities, dim=1)
 
     pred_mask_np = pred_mask.squeeze(0).cpu().numpy()
+
+    labeled_mask, num_features = label(pred_mask_np)
+    if num_features > 0:
+        component_areas = [(labeled_mask == i).sum() for i in range(1, num_features + 1)]
+        largest_component = np.argmax(component_areas) + 1  # Component labels start at 1
+        pred_mask_np = (labeled_mask == largest_component).astype(np.uint8)
+
     mask_pil = Image.fromarray((pred_mask_np * 255).astype(np.uint8))
 
     # Save results
