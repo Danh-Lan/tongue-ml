@@ -1,7 +1,1 @@
-__pycache__/
-data/*
-checkpoints/*
-test/*
-old_outputs/*
-outputs/*
-prod/*
+__pycache__

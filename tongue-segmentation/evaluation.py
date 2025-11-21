@@ -65,8 +65,8 @@ if __name__ == "__main__":
         torch.load("./checkpoints/unet_best_model.pth", map_location=torch.device(device))['model_state_dict']
     )
 
-    # iou = IoU(model, dataset)
+    iou = IoU(model, dataset)
     dice_score = dice(model, dataset)
 
-    # print(f"  IoU: {iou:.4f}")
+    print(f"  IoU: {iou:.4f}")
     print(f"  Dice Score: {dice_score:.4f}")

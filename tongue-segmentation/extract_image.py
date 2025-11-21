@@ -30,10 +30,7 @@ def crop_image(img, mask, margin=5):
         print("No object founded in the image.")
         return img
 
-def extract_image(image_pth, img_name, model_pth, output_pth, device):
-    model = UNet(in_channels=3, num_classes=2).to(device)
-    model.load_state_dict(torch.load(model_pth, map_location=torch.device(device)))
-
+def extract_image(model, image_pth, img_name, output_pth, device):
     transform = transforms.Compose([
         transforms.Resize((256, 256)),
         transforms.ToTensor()
@@ -41,15 +38,15 @@ def extract_image(image_pth, img_name, model_pth, output_pth, device):
 
     img = Image.open(image_pth).convert("RGB")
     original_size = img.size
-    input_img = transform(img).float().unsqueeze(0).to(device)
+    input_img = transform(img).unsqueeze(0).to(device)
 
     model.eval()
     with torch.no_grad():
         logits = model(input_img)
-        probabilities = torch.softmax(logits, dim=1)
-        pred_mask = torch.argmax(probabilities, dim=1)
+        probabilities = torch.sigmoid(logits)
+        pred_mask = (probabilities > 0.5).float()
 
-    pred_mask_np = pred_mask.squeeze(0).cpu().numpy()
+    pred_mask_np = pred_mask.squeeze().cpu().numpy()
 
     # Find the largest connected component in the mask
     labeled_mask, num_features = label(pred_mask_np)
@@ -82,14 +79,19 @@ def extract_image(image_pth, img_name, model_pth, output_pth, device):
     print(f"Extracted image saved to: {extracted_save_path}")
 
 if __name__ == "__main__":
-    IMAGE_PATH = "./test_images"
-    MODEL_PATH = "./checkpoints/unet_best_model.pth"
-    OUTPUT_PATH = "./outputs"
+    IMAGE_PATH = "C:\\Users\\lanng\\tongue-data-analysis\\TCM-tongue-nosplit\\images"
+    MODEL_PATH = "./checkpoints/old/unet_best_model.pth"
+    OUTPUT_PATH = "./old_outputs"
     device = "cuda" if torch.cuda.is_available() else "cpu"
+
+    model = UNet(in_channels=3, num_classes=1).to(device)
+    model.load_state_dict(
+        torch.load(MODEL_PATH, map_location=torch.device(device))['model_state_dict']
+    )
 
     for img_name in os.listdir(IMAGE_PATH):
         if img_name.lower().endswith(('.png', '.jpg', '.jpeg')):
             image_path = os.path.join(IMAGE_PATH, img_name)
             print(f"Processing image: {image_path}")
-        
-            extract_image(image_path, img_name, MODEL_PATH, OUTPUT_PATH, device)
+
+            extract_image(model, image_path, img_name, OUTPUT_PATH, device)
