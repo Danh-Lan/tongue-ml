@@ -44,16 +44,3 @@ def predict(model, image_pth, output_pth, device):
 
     mask_pil.save(mask_save_path)
     print(f"Binary mask saved to: {mask_save_path}")
-
-if __name__ == "__main__":
-    IMG_PATH = "./test/tongue2.jpg"
-    MODEL_PATH = "./checkpoints/unet_best_model.pth"
-    OUTPUT_PATH = "./test"
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-
-    model = UNet(in_channels=3, num_classes=1).to(device)
-    model.load_state_dict(
-        torch.load(MODEL_PATH, map_location=torch.device(device))['model_state_dict']
-    )
-
-    predict(model, IMG_PATH, OUTPUT_PATH, device)

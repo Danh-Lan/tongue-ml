@@ -77,21 +77,3 @@ def extract_image(model, image_pth, img_name, output_pth, device):
     extracted_img.save(extracted_save_path)
 
     print(f"Extracted image saved to: {extracted_save_path}")
-
-if __name__ == "__main__":
-    IMAGE_PATH = "C:\\Users\\lanng\\tongue-data-analysis\\TCM-tongue-nosplit\\images"
-    MODEL_PATH = "./checkpoints/old/unet_best_model.pth"
-    OUTPUT_PATH = "./old_outputs"
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-
-    model = UNet(in_channels=3, num_classes=1).to(device)
-    model.load_state_dict(
-        torch.load(MODEL_PATH, map_location=torch.device(device))['model_state_dict']
-    )
-
-    for img_name in os.listdir(IMAGE_PATH):
-        if img_name.lower().endswith(('.png', '.jpg', '.jpeg')):
-            image_path = os.path.join(IMAGE_PATH, img_name)
-            print(f"Processing image: {image_path}")
-
-            extract_image(model, image_path, img_name, OUTPUT_PATH, device)
