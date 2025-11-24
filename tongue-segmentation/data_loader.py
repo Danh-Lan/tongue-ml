@@ -26,7 +26,7 @@ class Dataset:
 			print("Warning: Mismatch between the number of images and masks.")
 
 		self.image_transform = transforms.Compose([
-			transforms.Resize((256, 256)),
+			transforms.Resize((256, 256)), # divisible by 16
 			transforms.ToTensor(),
 		])
 
@@ -38,12 +38,12 @@ class Dataset:
 		return len(self.images)
 
 	def __getitem__(self, idx):
-		image = Image.open(self.images[idx]).convert("L")
+		image = Image.open(self.images[idx]).convert("RGB")
 		mask = Image.open(self.masks[idx]).convert("L")
 
 		image = self.image_transform(image)
 		mask = self.mask_transform(mask)
-		mask = F.pil_to_tensor(mask).squeeze(0).long()
+		mask = F.pil_to_tensor(mask).float()
 		
 		return image, mask
 
@@ -55,7 +55,7 @@ if __name__ == "__main__":
 	print(f"Total image-mask pairs in {image_dir}: {len(dataset)}")
 
 	image, mask = dataset[0]
-	print("Image Tensor:", image)
-	print("Mask Tensor:", mask)
+	print(f"Image shape: {image.shape}")
+	print(f"Mask shape: {mask.shape}")
 
-	
+	print(mask.min().item(), mask.max().item(), mask.unique())
